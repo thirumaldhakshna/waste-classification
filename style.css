@@ -1,0 +1,602 @@
+/* ============================================================
+   SMART WASTE SCANNER — STYLESHEET
+   Palette:
+     paper-white  #FAFAF7
+     ink-black    #111310
+     bin-green    #1E8F4E
+     bin-blue     #1D6FA5
+   ============================================================ */
+
+/* ----- RESET & BASE ----- */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background-color: #FAFAF7;
+  color: #111310;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Visible focus rings for keyboard users */
+:focus-visible {
+  outline: 3px solid #1D6FA5;
+  outline-offset: 3px;
+}
+
+/* Utility: hide an element */
+.hidden {
+  display: none !important;
+}
+
+/* ----- TOP BAR ----- */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid lightgray;
+}
+
+.top-bar__title {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Header controls wrapper */
+.top-bar__controls {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Language toggle (EN / தமிழ்) */
+.lang-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid lightgray;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.lang-btn {
+  font-family: "Inter", sans-serif;
+  /* font-size: 0.8rem; */
+  font-size: 12px;
+  font-weight: 600;
+  padding: 12px 12px;
+  border: none;
+  background: none;
+  color: #111310;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.lang-btn:hover {
+  background-color: #E8E8E4;
+}
+
+/* Active language button — filled ink-black */
+.lang-btn--active {
+  background-color: #111310;
+  color: #FAFAF7;
+}
+
+.lang-btn--active:hover {
+  background-color: #333;
+}
+
+/* Small icon button (mute toggle) */
+.icon-btn {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid lightgray;
+  border-radius: 8px;
+  padding: 6px;
+  cursor: pointer;
+  color: #111310;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+}
+
+.icon-btn:hover {
+  background-color: #E8E8E4;
+}
+
+/* ----- ERROR BANNER ----- */
+.error-banner {
+  position: relative;
+  background-color: #FFF3CD;
+  border-bottom: 2px solid #856404;
+  padding: 0.85rem 3rem 0.85rem 1.5rem;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: #856404;
+}
+
+.error-banner__close {
+  position: absolute;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #856404;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.error-banner__close:hover {
+  opacity: 1;
+}
+
+/* ----- SCANNER LAYOUT (main content) ----- */
+.scanner {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+/* Left side: webcam */
+.scanner__video-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid lightgray;
+  border-radius: 16px;
+  min-height: 320px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Right side: verdict */
+.scanner__verdict-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  border: 1px solid lightgray;
+  border-radius: 16px;
+  transition: background-color 0.5s ease, color 0.5s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ----- START BUTTON ----- */
+.start-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 3rem;
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #FAFAF7;
+  background-color: #111310;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.start-btn:active {
+  transform: translateY(0);
+}
+
+/* ----- LOADING MESSAGE ----- */
+.loading-msg {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #555;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .loading-msg {
+    animation: none;
+  }
+
+  /* Disable all transitions/animations globally */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ----- WEBCAM FRAME ----- */
+.webcam-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+/* The Teachable Machine library inserts a <canvas> here */
+.webcam-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ----- CAPTURE BUTTON ----- */
+.capture-btn {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #111310;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid lightgray;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.capture-btn:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+/* ----- DUSTBIN ICON ----- */
+.dustbin-icon-wrap {
+  width: 160px;
+  height: 180px;
+  margin-bottom: 1.25rem;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+  transition: filter 0.4s ease;
+}
+
+.dustbin-icon {
+  width: 100%;
+  height: 100%;
+}
+
+/* ----- VERDICT TEXT ----- */
+.verdict-text {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  line-height: 1.1;
+  margin-bottom: 0.6rem;
+  max-width: 90%;
+  overflow-wrap: break-word;
+  transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+
+.verdict-instruction {
+  font-size: clamp(1.05rem, 2.5vw, 1.5rem);
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  margin-top: 0.5rem;
+  margin-bottom: 1.75rem;
+  line-height: 1.4;
+  padding: 0.4rem 1.5rem;
+  border-radius: 100px;
+  background-color: rgba(0, 0, 0, 0.06);
+  transition: background-color 0.4s ease;
+}
+
+/* ----- CONFIDENCE SECTION ----- */
+.confidence-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.confidence-label {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* Bar and percentage stacked vertically, both centered */
+.confidence-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+}
+
+.confidence-bar {
+  width: 100%;
+  height: 12px;
+  background-color: #E0E0DC;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.confidence-bar__fill {
+  height: 100%;
+  width: 0%;
+  background-color: #111310;
+  border-radius: 6px;
+  transition: width 0.25s ease, background-color 0.4s ease;
+}
+
+.confidence-pct {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  text-align: center;
+  line-height: 1;
+}
+
+/* ----- COLOUR STATES for the verdict panel ----- */
+
+/* Green (biodegradable) */
+.scanner__verdict-side.state-green {
+  background-color: #1E8F4E;
+  border-color: #1E8F4E;
+  color: #FAFAF7;
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.12);
+}
+
+.scanner__verdict-side.state-green .verdict-text {
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+}
+
+.scanner__verdict-side.state-green .verdict-instruction {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.scanner__verdict-side.state-green .dustbin-icon-wrap {
+  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.25));
+}
+
+.scanner__verdict-side.state-green .confidence-bar__fill {
+  background-color: #FAFAF7;
+}
+
+.scanner__verdict-side.state-green .confidence-pct,
+.scanner__verdict-side.state-green .confidence-label {
+  color: #FAFAF7;
+}
+
+.scanner__verdict-side.state-green .confidence-bar {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Blue (non-biodegradable) */
+.scanner__verdict-side.state-blue {
+  background-color: #1D6FA5;
+  border-color: #1D6FA5;
+  color: #FAFAF7;
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.12);
+}
+
+.scanner__verdict-side.state-blue .verdict-text {
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+}
+
+.scanner__verdict-side.state-blue .verdict-instruction {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.scanner__verdict-side.state-blue .dustbin-icon-wrap {
+  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.25));
+}
+
+.scanner__verdict-side.state-blue .confidence-bar__fill {
+  background-color: #FAFAF7;
+}
+
+.scanner__verdict-side.state-blue .confidence-pct,
+.scanner__verdict-side.state-blue .confidence-label {
+  color: #FAFAF7;
+}
+
+.scanner__verdict-side.state-blue .confidence-bar {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ----- SCAN COUNTER BAR ----- */
+.counter-bar {
+  text-align: center;
+  padding: 1.25rem 1rem;
+  background-color: #FAFAF7;
+  border-top: 1px solid lightgray;
+}
+
+.counter-text {
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #555;
+  margin: 0;
+}
+
+.counter-text strong {
+  font-weight: 700;
+  color: #111310;
+}
+
+.reset-link {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  color: #111310;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  transition: color 0.15s ease;
+}
+
+.reset-link:hover {
+  color: #1D6FA5;
+}
+
+/* ----- FOOTER ----- */
+.footer {
+  text-align: center;
+  padding: 0.6rem;
+  border-top: 1px solid lightgray;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* ============================================================
+   RESPONSIVE — stack on narrow screens
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .top-bar {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .top-bar__controls {
+    top: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .lang-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .icon-btn {
+    padding: 4px;
+  }
+
+  .icon-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .scanner {
+    flex-direction: column-reverse;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .scanner__video-side {
+    min-height: 280px;
+    padding: 1rem;
+    width: 100%;
+  }
+
+  .scanner__verdict-side {
+    padding: 1.25rem 1rem;
+    width: 100%;
+  }
+
+  .dustbin-icon-wrap {
+    width: 110px;
+    height: 130px;
+  }
+
+  .verdict-text {
+    font-size: clamp(2rem, 10vw, 3.5rem);
+  }
+
+  .confidence-section {
+    max-width: 260px;
+  }
+}
+
+@media (max-width: 400px) {
+  .top-bar {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .top-bar__title {
+    font-size: 1.1rem;
+  }
+
+  .start-btn {
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+  }
+}

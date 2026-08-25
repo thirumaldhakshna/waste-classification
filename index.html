@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO: page title and description -->
+  <title>Smart Waste Scanner — AI Waste Classifier</title>
+  <meta name="description"
+    content="Point your webcam at any waste item and the AI will tell you whether it goes in the green (biodegradable) or blue (non-biodegradable) dustbin." />
+
+  <!-- Google Fonts: condensed display + readable body -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+
+  <!-- Our stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="top-bar">
+    <h1 class="top-bar__title">♻️ Smart Waste Scanner</h1>
+  </header>
+
+  <!-- ===== ERROR BANNER (hidden by default) ===== -->
+  <div id="error-banner" class="error-banner hidden" role="alert">
+    <p id="error-msg"></p>
+    <button id="error-close-btn" class="error-banner__close" aria-label="Close message">&times;</button>
+  </div>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="scanner">
+
+    <!-- LEFT: webcam feed -->
+    <section class="scanner__video-side">
+
+      <!-- Start button — shown before camera starts -->
+      <button id="start-btn" class="start-btn">
+        <!-- Camera SVG icon -->
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+          <circle cx="12" cy="13" r="4" />
+        </svg>
+        <span>Start Scanning</span>
+      </button>
+
+      <!-- Loading message (hidden by default) -->
+      <p id="loading-msg" class="loading-msg hidden">Loading AI model…</p>
+
+      <!-- Webcam canvas container (hidden until camera starts) -->
+      <div id="webcam-wrap" class="webcam-wrap hidden">
+        <!-- The Teachable Machine webcam object appends a <canvas> here -->
+      </div>
+
+      <!-- Capture button — appears once the camera is running -->
+      <button id="capture-btn" class="capture-btn hidden" aria-label="Capture result as image">
+        <!-- Download/camera SVG icon -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        <span>Capture Result</span>
+      </button>
+
+      <!-- Hidden canvas used to composite the screenshot (not visible on page) -->
+      <canvas id="capture-canvas" class="hidden"></canvas>
+    </section>
+
+    <!-- RIGHT: verdict panel -->
+    <section id="verdict-panel" class="scanner__verdict-side">
+      <div class="top-bar__controls">
+        <!-- Language selector -->
+        <div class="lang-toggle" role="radiogroup" aria-label="Language">
+          <button id="lang-en" class="lang-btn lang-btn--active" aria-pressed="true">EN</button>
+          <button id="lang-ta" class="lang-btn" aria-pressed="false">தமிழ்</button>
+        </div>
+
+        <!-- Mute / unmute toggle for voice + beep -->
+        <button id="mute-btn" class="icon-btn" aria-label="Mute audio">
+          <!-- Speaker-on SVG icon (swapped via JS when muted) -->
+          <svg id="icon-unmuted" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          </svg>
+          <svg id="icon-muted" class="hidden" width="28" height="28" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <line x1="23" y1="9" x2="17" y2="15" />
+            <line x1="17" y1="9" x2="23" y2="15" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Dustbin SVG icon — fills up with colour on detection -->
+      <div class="dustbin-icon-wrap">
+        <svg id="dustbin-svg" class="dustbin-icon" viewBox="0 0 100 120" aria-hidden="true">
+          <!-- Bin lid -->
+          <rect x="15" y="8" width="70" height="8" rx="3" fill="#CCC" />
+          <rect x="40" y="2" width="20" height="8" rx="3" fill="#CCC" />
+          <!-- Bin body (outline only — fill is animated via clip-path) -->
+          <rect id="bin-body-bg" x="20" y="18" width="60" height="80" rx="5" fill="#E8E8E4" />
+          <!-- Filled portion (clipped from bottom) -->
+          <clipPath id="fill-clip">
+            <rect id="fill-rect" x="20" y="98" width="60" height="0" />
+          </clipPath>
+          <rect id="bin-body-fill" x="20" y="18" width="60" height="80" rx="5" fill="#CCC"
+            clip-path="url(#fill-clip)" />
+          <!-- Bin lines (decoration) -->
+          <line x1="38" y1="30" x2="38" y2="88" stroke="#FFF" stroke-width="2" opacity="0.5" />
+          <line x1="50" y1="30" x2="50" y2="88" stroke="#FFF" stroke-width="2" opacity="0.5" />
+          <line x1="62" y1="30" x2="62" y2="88" stroke="#FFF" stroke-width="2" opacity="0.5" />
+        </svg>
+      </div>
+
+      <!-- The big verdict word -->
+      <p id="verdict-text" class="verdict-text">Waiting…</p>
+
+      <!-- Instruction line (which dustbin to use) -->
+      <p id="verdict-instruction" class="verdict-instruction hidden">&nbsp;</p>
+
+      <!-- Confidence section: bar + large percentage -->
+      <div id="confidence-section" class="confidence-section hidden">
+        <span class="confidence-label">CONFIDENCE</span>
+        <div class="confidence-row">
+          <div class="confidence-bar">
+            <div id="confidence-fill" class="confidence-bar__fill"></div>
+          </div>
+          <span id="confidence-pct" class="confidence-pct">0%</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== SCAN COUNTER PANEL ===== -->
+  <div class="counter-bar">
+    <p class="counter-text">
+      <span class="nowrap">Total: <strong id="count-total">0</strong></span> &nbsp;|&nbsp;
+      <span class="nowrap">Biodegradable: <strong id="count-bio">0</strong></span> &nbsp;|&nbsp;
+      <span class="nowrap">Non-Biodegradable: <strong id="count-nonbio">0</strong></span> &nbsp;|&nbsp;
+      <span class="nowrap"><button id="reset-btn" class="reset-link">Reset</button></span>
+    </p>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <!-- <p>School AI Project · Uses TensorFlow.js &amp; Teachable Machine</p> -->
+    <p>This is the smart waste segregation system trained by Thirumal Dhakshnamoorthy using Tensorflow.js &amp;
+      Teachable Machine</p>
+  </footer>
+
+  <!-- ===== SCRIPTS ===== -->
+  <!-- TensorFlow.js core -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <!-- Teachable Machine image library -->
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <!-- Our application logic -->
+  <script src="app.js"></script>
+
+</body>
+
+</html>
