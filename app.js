@@ -125,11 +125,11 @@ async function loadModelAndStart() {
   }
 
   // --- Set up the webcam (200×200 is the Teachable Machine default) ---
-  const flip = true;  // mirror the camera so it feels natural
+  const flip = false;  // DO NOT mirror the back camera
   webcam = new tmImage.Webcam(400, 400, flip);
 
   try {
-    await webcam.setup();  // asks for camera permission
+    await webcam.setup({ facingMode: "environment" });  // asks for back camera permission
   } catch (err) {
     throw new Error("CAMERA_FAILED:" + (err.name || ""));
   }
