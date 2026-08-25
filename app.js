@@ -4,8 +4,15 @@
 //  from the live webcam as Biodegradable or Non-Biodegradable.
 // ============================================================
 
-// -------- MODEL URL (change this to YOUR Teachable Machine model) --------
-const MODEL_URL = "https://teachablemachine.withgoogle.com/models/UVSr7Uv0z/";
+// =====================================================================================
+// 🛑 IMPORTANT: YOU MUST CHANGE THE LINK BELOW! 🛑
+// The link currently here is your OLD model which only has 2 classes. 
+// It DOES NOT know what "Background" is.
+// You must click "Export Model" -> "Upload my model" in Teachable Machine, 
+// copy the NEW link it gives you, and paste it exactly inside the quotes below!
+// =====================================================================================
+// const MODEL_URL = "https://teachablemachine.withgoogle.com/models/UVSr7Uv0z/";
+const MODEL_URL = "https://teachablemachine.withgoogle.com/models/kDSJorNQH/"
 
 // -------- CONSTANTS --------
 const CONFIDENCE_THRESHOLD = 0.80;   // 80 % — below this we say "not sure"
