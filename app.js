@@ -46,7 +46,7 @@ const captureCanvas = document.getElementById("capture-canvas");
 
 // -------- STATE --------
 let model = null;    // Teachable Machine model
-let webcam = null;    // tmImage.Webcam instance
+let videoElement = null; // HTML video element for camera feed
 let isMuted = false;   // mute toggle
 let lastSpoken = "";      // last class we spoke aloud
 let lastSpokeTime = 0;       // timestamp of last speech
@@ -124,20 +124,33 @@ async function loadModelAndStart() {
     throw new Error("MODEL_LOAD_FAILED");
   }
 
-  // --- Set up the webcam (200×200 is the Teachable Machine default) ---
-  const flip = false;  // DO NOT mirror the back camera
-  webcam = new tmImage.Webcam(400, 400, flip);
+  // --- Set up the webcam natively to enforce back camera on mobile ---
+  videoElement = document.createElement("video");
+  videoElement.setAttribute("autoplay", "");
+  videoElement.setAttribute("playsinline", ""); // crucial for iOS
+  videoElement.style.width = "100%";
+  videoElement.style.height = "100%";
+  videoElement.style.objectFit = "cover";
 
   try {
-    await webcam.setup({ facingMode: "environment" });  // asks for back camera permission
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } }
+    });
+    videoElement.srcObject = stream;
   } catch (err) {
     throw new Error("CAMERA_FAILED:" + (err.name || ""));
   }
 
-  await webcam.play();     // start the video stream
+  // Wait for the video to start playing
+  await new Promise((resolve) => {
+    videoElement.onloadedmetadata = () => {
+      videoElement.play();
+      resolve();
+    };
+  });
 
-  // Put the webcam canvas into the page
-  webcamWrap.appendChild(webcam.canvas);
+  // Put the video element into the page
+  webcamWrap.appendChild(videoElement);
 
   // Hide the loading text and show the webcam frame + capture button
   loadingMsg.classList.add("hidden");
@@ -155,11 +168,8 @@ async function loadModelAndStart() {
 async function predictionLoop() {
   if (!isRunning) return;
 
-  // Update the webcam canvas with the latest frame
-  webcam.update();
-
-  // Ask the model to predict what it sees
-  const predictions = await model.predict(webcam.canvas);
+  // Ask the model to predict what it sees on the video element
+  const predictions = await model.predict(videoElement);
 
   // Find which class has the highest probability
   let topClass = "";
@@ -496,11 +506,11 @@ resetBtn.addEventListener("click", () => {
 //  15. CAPTURE RESULT — screenshot webcam + verdict as PNG
 // ============================================================
 captureBtn.addEventListener("click", () => {
-  if (!webcam || !webcam.canvas) return;  // camera not running yet
+  if (!videoElement) return;  // camera not running yet
 
   // --- Set up the offscreen canvas ---
-  const srcW = webcam.canvas.width;   // webcam frame width
-  const srcH = webcam.canvas.height;  // webcam frame height
+  const srcW = videoElement.videoWidth;   // webcam frame width
+  const srcH = videoElement.videoHeight;  // webcam frame height
   const bannerH = 80;                 // height of the verdict text bar at the bottom
   const totalW = srcW;
   const totalH = srcH + bannerH;
@@ -510,7 +520,7 @@ captureBtn.addEventListener("click", () => {
   const ctx = captureCanvas.getContext("2d");
 
   // --- Draw the current webcam frame ---
-  ctx.drawImage(webcam.canvas, 0, 0, srcW, srcH);
+  ctx.drawImage(videoElement, 0, 0, srcW, srcH);
 
   // --- Draw the verdict banner at the bottom ---
   // Pick the banner colour based on the current panel state
